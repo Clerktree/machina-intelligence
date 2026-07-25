@@ -31,6 +31,20 @@ def test_readiness_and_request_trace():
     assert response.headers["X-Request-ID"] == "pilot-check-001"
 
 
+def test_inference_is_audited_without_storing_sensor_values():
+    client = TestClient(app)
+    response = client.post("/v1/analyze", headers={"X-Request-ID": "audit-check-001"}, json={
+        "machine_id": "audit-pump",
+        "sample_rate_hz": 1000,
+        "sensors": {"vibration": [1, 1, 1, 1, 1, 12]},
+    })
+    assert response.status_code == 200
+    audits = client.get("/v1/audit/inferences?limit=1").json()
+    assert audits[0]["request_id"] == "audit-check-001"
+    assert audits[0]["sensor_summary"] == {"vibration": 6}
+    assert "values" not in audits[0]
+
+
 def test_sensor_window_rejects_non_finite_values():
     client = TestClient(app)
     response = client.post("/v1/analyze", json={

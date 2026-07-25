@@ -1,6 +1,6 @@
 {
-  "model_version": "machina-cwru-enhanced-et-0.2.0",
-  "model_family": "extra_trees",
+  "model_version": "machina-cwru-calibrated-et-0.3.0",
+  "model_family": "calibrated_extra_trees",
   "feature_version": "cwru-signal-v2",
   "dataset": "CWRU Bearing Fault Dataset, 12 kHz drive-end files",
   "source_files": 64,
@@ -152,6 +152,75 @@
           112
         ]
       ]
+    },
+    "calibrated_extra_trees": {
+      "macro_f1": 0.9886315191132585,
+      "accuracy": 0.98828125,
+      "classification_report": {
+        "ball": {
+          "precision": 1.0,
+          "recall": 0.9375,
+          "f1-score": 0.967741935483871,
+          "support": 48.0
+        },
+        "inner_race": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 80.0
+        },
+        "normal": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 16.0
+        },
+        "outer_race": {
+          "precision": 0.9739130434782609,
+          "recall": 1.0,
+          "f1-score": 0.986784140969163,
+          "support": 112.0
+        },
+        "accuracy": 0.98828125,
+        "macro avg": {
+          "precision": 0.9934782608695653,
+          "recall": 0.984375,
+          "f1-score": 0.9886315191132585,
+          "support": 256.0
+        },
+        "weighted avg": {
+          "precision": 0.9885869565217391,
+          "recall": 0.98828125,
+          "f1-score": 0.9881696745772346,
+          "support": 256.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          45,
+          0,
+          0,
+          3
+        ],
+        [
+          0,
+          80,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          16,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          112
+        ]
+      ]
     }
   },
   "leave_one_rpm_out": {
@@ -174,8 +243,20 @@
       },
       "mean_macro_f1": 0.99167852719826,
       "min_macro_f1": 0.9837092731829574
+    },
+    "calibrated_extra_trees": {
+      "per_rpm_macro_f1": {
+        "1730": 0.9969203849518811,
+        "1750": 0.993819356651215,
+        "1772": 0.9906960352422908,
+        "1797": 0.984378883090141
+      },
+      "mean_macro_f1": 0.991453664983882,
+      "min_macro_f1": 0.984378883090141
     }
   },
-  "selected_model": "extra_trees",
+  "selected_model": "calibrated_extra_trees",
+  "confidence_calibrated": true,
+  "calibration_method": "sigmoid on source-file holdout",
   "training_sklearn_version": "1.7.2"
 }

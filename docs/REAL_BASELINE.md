@@ -38,14 +38,17 @@ starting point, not a performance claim for unseen industrial equipment.
 
 The next reproducible experiment uses 64 12 kHz drive-end files, 1,024
 source-grouped windows, and 21 time-domain, spectral, and envelope features.
-The selected ExtraTrees model is published locally as `artifacts/cwru-enhanced`
-and uses a leave-one-RPM-out robustness check.
+The selected sigmoid-calibrated ExtraTrees model is published locally as
+`artifacts/cwru-enhanced` and uses a leave-one-RPM-out robustness check.
 
 | Metric | Value |
 |---|---:|
 | Grouped split macro-F1 | 0.9963 |
-| Leave-one-RPM-out mean macro-F1 | 0.9945 |
-| Leave-one-RPM-out minimum macro-F1 | 0.9871 |
+| Leave-one-RPM-out mean macro-F1 | 0.9915 |
+| Leave-one-RPM-out minimum macro-F1 | 0.9844 |
+
+The calibrated model is selected despite the small benchmark-score tradeoff so
+that fault confidence can support conservative abstention behavior.
 
 These unusually strong benchmark numbers are not industrial generalization.
 CWRU is a controlled laboratory dataset; the next acceptance test is a held-out

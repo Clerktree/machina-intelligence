@@ -9,7 +9,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 MODEL_CONFIG = {
-    "fault_diagnosis": ("MACHINA_CLASSIFIER_PATH", "artifacts/cwru-enhanced/model.joblib", "machina-cwru-enhanced-et-0.2.0"),
+    "fault_diagnosis": ("MACHINA_CLASSIFIER_PATH", "artifacts/cwru-enhanced/model.joblib", "machina-cwru-calibrated-et-0.3.0"),
     "remaining_useful_life": ("MACHINA_RUL_MODEL_PATH", "artifacts/rul-cmapss/model.joblib", "machina-cmapss-rul-et-0.2.1"),
     "quality_prediction": ("MACHINA_QUALITY_MODEL_PATH", "artifacts/ai4i-quality/model.joblib", "machina-ai4i-quality-rf-0.1.0"),
 }

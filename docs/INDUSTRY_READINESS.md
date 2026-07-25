@@ -9,7 +9,7 @@ a certification or declaration of conformity.
 | Area | Current state | Release gate |
 |---|---|---|
 | Fault benchmark | CWRU controlled benchmark; grouped and leave-one-RPM-out evaluation | Held-out customer machines and operating regimes |
-| Inference safety | Input validation, confidence threshold, abstention, human-review flag | Site-specific thresholds validated against missed-fault and false-alarm costs |
+| Inference safety | Input validation, calibrated confidence threshold, abstention, human-review flag | Site-specific thresholds validated against missed-fault and false-alarm costs |
 | Traceability | Model version, SHA-256, request ID, and audit-safe request log | Durable tamper-evident audit retention owned by deployment operator |
 | Deployment security | API key, read-only container, dropped capabilities, readiness endpoint | OT threat model, segmentation, certificate management, penetration test |
 | Condition monitoring workflow | API and platform contracts | Map site workflow to ISO 17359 and diagnostic data flow to ISO 13374 |

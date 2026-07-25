@@ -68,6 +68,21 @@ class KnowledgeSearchResult(BaseModel):
     source_uri: str | None = None
 
 
+class InferenceAudit(BaseModel):
+    audit_id: str
+    request_id: str
+    machine_id: str
+    timestamp: datetime
+    status: Literal["normal", "watch", "critical"]
+    model_version: str
+    anomaly_score: float
+    predicted_fault: str | None = None
+    fault_confidence: float | None = None
+    abstained: bool = False
+    sensor_summary: dict[str, int]
+    latency_ms: float
+
+
 class PlatformStore:
     def __init__(self, db_path: str | None = None) -> None:
         self.db_path = db_path
@@ -97,6 +112,9 @@ class PlatformStore:
                     document_id TEXT PRIMARY KEY, title TEXT NOT NULL,
                     text TEXT NOT NULL, asset_type TEXT, source_uri TEXT,
                     revision TEXT
+                );
+                CREATE TABLE IF NOT EXISTS inference_audits (
+                    audit_id TEXT PRIMARY KEY, payload TEXT NOT NULL
                 );
             """)
             self._connection.execute(
@@ -227,6 +245,7 @@ class PlatformStore:
                 "telemetry_batches": self._connection.execute("SELECT COUNT(*) FROM telemetry").fetchone()[0],
                 "maintenance_events": self._connection.execute("SELECT COUNT(*) FROM maintenance_events").fetchone()[0],
                 "models": self._connection.execute("SELECT COUNT(*) FROM models").fetchone()[0],
+                "inference_audits": self._connection.execute("SELECT COUNT(*) FROM inference_audits").fetchone()[0],
             }
         else:
             counts = {
@@ -234,11 +253,35 @@ class PlatformStore:
                 "telemetry_batches": len(self.telemetry),
                 "maintenance_events": len(self.events),
                 "models": len(self.models),
+                "inference_audits": len(getattr(self, "inference_audits", [])),
             }
         return {
             **counts,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
+
+    def record_inference(self, audit: InferenceAudit) -> InferenceAudit:
+        if not hasattr(self, "inference_audits"):
+            self.inference_audits: list[InferenceAudit] = []
+        self.inference_audits.append(audit)
+        self.inference_audits = self.inference_audits[-1000:]
+        if self._connection:
+            with self._lock:
+                self._connection.execute(
+                    "INSERT OR REPLACE INTO inference_audits(audit_id, payload) VALUES (?, ?)",
+                    (audit.audit_id, audit.model_dump_json()),
+                )
+                self._connection.commit()
+        return audit
+
+    def list_inference_audits(self, limit: int = 100) -> list[InferenceAudit]:
+        limit = max(1, min(limit, 1000))
+        if self._connection:
+            rows = self._connection.execute(
+                "SELECT payload FROM inference_audits ORDER BY rowid DESC LIMIT ?", (limit,)
+            ).fetchall()
+            return [InferenceAudit.model_validate_json(row[0]) for row in rows]
+        return list(reversed(getattr(self, "inference_audits", [])[-limit:]))
 
 
 store = PlatformStore(os.getenv("MACHINA_DB_PATH"))
@@ -247,7 +290,7 @@ store = PlatformStore(os.getenv("MACHINA_DB_PATH"))
 # validation promotes them through the registry.
 store.register_model(ModelDescriptor(
     model_id="machina-cwru-bearing-fault",
-    version="0.2.0",
+    version="0.3.0",
     capability="fault_diagnosis",
     asset_types=["bearing", "motor", "rotating_equipment"],
     input_schema=["4,096-sample vibration window", "12 kHz sampling context"],

@@ -2,6 +2,7 @@ import os
 import logging
 import time
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -9,7 +10,7 @@ from fastapi.responses import JSONResponse
 from .anomaly import analyze_window
 from .capabilities import MACHINA_CAPABILITIES, Capability
 from .platform import (
-    Asset, KnowledgeDocument, KnowledgeSearchRequest, KnowledgeSearchResult,
+    Asset, InferenceAudit, KnowledgeDocument, KnowledgeSearchRequest, KnowledgeSearchResult,
     MaintenanceEvent, ModelDescriptor, TelemetryBatch, store,
 )
 from .rul import predict
@@ -71,6 +72,12 @@ def model_health_endpoint() -> list[dict[str, str | bool]]:
 @app.get("/v1/platform/snapshot")
 def platform_snapshot() -> dict:
     return store.snapshot()
+
+
+@app.get("/v1/audit/inferences", response_model=list[InferenceAudit])
+def inference_audits(limit: int = 100) -> list[InferenceAudit]:
+    """Return metadata-only inference records; raw sensor values are never stored."""
+    return store.list_inference_audits(limit)
 
 
 @app.post("/v1/assets", response_model=Asset)
@@ -142,5 +149,21 @@ def maintenance_brief(request: MaintenanceBriefRequest) -> MaintenanceBrief:
 
 
 @app.post("/v1/analyze", response_model=Finding)
-def analyze(window: SensorWindow) -> Finding:
-    return analyze_window(window)
+def analyze(window: SensorWindow, request: Request) -> Finding:
+    started = time.perf_counter()
+    result = analyze_window(window)
+    store.record_inference(InferenceAudit(
+        audit_id=str(uuid.uuid4()),
+        request_id=request.state.request_id,
+        machine_id=window.machine_id,
+        timestamp=datetime.now(timezone.utc),
+        status=result.status,
+        model_version=result.model_version,
+        anomaly_score=result.anomaly_score,
+        predicted_fault=result.predicted_fault,
+        fault_confidence=result.fault_confidence,
+        abstained=result.abstained,
+        sensor_summary={name: len(values) for name, values in window.sensors.items()},
+        latency_ms=round((time.perf_counter() - started) * 1000, 3),
+    ))
+    return result

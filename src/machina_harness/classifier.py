@@ -75,7 +75,7 @@ def classify(signal: list[float]) -> tuple[str, float, str] | None:
     if isinstance(model, dict) and model.get("feature_version") == "cwru-signal-v2":
         estimator = model["model"]
         row = _enhanced_features(signal)
-        version = model.get("model_version", "machina-cwru-enhanced-et-0.2.0")
+        version = model.get("model_version", "machina-cwru-calibrated-et-0.3.0")
     else:
         estimator = model
         row = _features(signal)

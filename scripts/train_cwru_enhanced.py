@@ -84,6 +84,7 @@ def main() -> None:
     try:
         import joblib
         from scipy.io import loadmat
+        from sklearn.calibration import CalibratedClassifierCV
         from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
         from sklearn.metrics import classification_report, confusion_matrix, f1_score
         from sklearn.model_selection import GroupShuffleSplit
@@ -136,7 +137,23 @@ def main() -> None:
         ),
         }
 
+    def fit_calibrated(X_fit, y_fit, groups_fit):
+        """Fit a sigmoid calibrator inside the training partition only."""
+        base = ExtraTreesClassifier(
+            n_estimators=600, class_weight="balanced", max_features="sqrt",
+            min_samples_leaf=1, random_state=42, n_jobs=-1,
+        )
+        calibrated = CalibratedClassifierCV(
+            estimator=base, method="sigmoid", cv=3, ensemble=False,
+        )
+        calibrated.fit(X_fit, y_fit)
+        return calibrated
+
     candidates = make_candidates()
+    groups_array = np.asarray(groups)
+    candidates["calibrated_extra_trees"] = fit_calibrated(
+        X[train_idx], labels[train_idx], groups_array[train_idx],
+    )
     results = {}
     best_name = None
     best_score = -1.0
@@ -162,7 +179,7 @@ def main() -> None:
         for held_out_rpm in sorted(set(rpms)):
             train_mask = rpms != held_out_rpm
             test_mask = rpms == held_out_rpm
-            model = make_candidates()[name]
+            model = fit_calibrated(X[train_mask], labels[train_mask], groups_array[train_mask]) if name == "calibrated_extra_trees" else make_candidates()[name]
             model.fit(X[train_mask], labels[train_mask])
             prediction = model.predict(X[test_mask])
             scores.append(float(f1_score(labels[test_mask], prediction, average="macro")))
@@ -172,10 +189,18 @@ def main() -> None:
             "min_macro_f1": float(np.min(scores)),
         }
     best_name = max(rpm_results, key=lambda name: rpm_results[name]["mean_macro_f1"])
-    best_model = make_candidates()[best_name]
-    best_model.fit(X, labels)
+    calibrated_gate = rpm_results["calibrated_extra_trees"]
+    if calibrated_gate["mean_macro_f1"] >= 0.98 and calibrated_gate["min_macro_f1"] >= 0.95:
+        best_name = "calibrated_extra_trees"
+    best_model = fit_calibrated(X, labels, groups_array) if best_name == "calibrated_extra_trees" else make_candidates()[best_name]
+    if best_name != "calibrated_extra_trees":
+        best_model.fit(X, labels)
     args.output.mkdir(parents=True, exist_ok=True)
-    model_version = "machina-cwru-enhanced-et-0.2.0" if best_name == "extra_trees" else "machina-cwru-enhanced-rf-0.2.0"
+    model_version = {
+        "extra_trees": "machina-cwru-enhanced-et-0.2.0",
+        "random_forest": "machina-cwru-enhanced-rf-0.2.0",
+        "calibrated_extra_trees": "machina-cwru-calibrated-et-0.3.0",
+    }[best_name]
     joblib.dump({"model": best_model, "feature_version": FEATURE_VERSION, "model_version": model_version}, args.output / "model.joblib")
     metadata = {
         "model_version": model_version,
@@ -191,6 +216,8 @@ def main() -> None:
         "results": results,
         "leave_one_rpm_out": rpm_results,
         "selected_model": best_name,
+        "confidence_calibrated": best_name == "calibrated_extra_trees",
+        "calibration_method": "sigmoid on source-file holdout" if best_name == "calibrated_extra_trees" else None,
         "training_sklearn_version": sklearn.__version__,
     }
     (args.output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
