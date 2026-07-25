@@ -247,10 +247,10 @@ store = PlatformStore(os.getenv("MACHINA_DB_PATH"))
 # validation promotes them through the registry.
 store.register_model(ModelDescriptor(
     model_id="machina-cwru-bearing-fault",
-    version="0.1.0",
+    version="0.2.0",
     capability="fault_diagnosis",
     asset_types=["bearing", "motor", "rotating_equipment"],
-    input_schema=["vibration window"],
+    input_schema=["4,096-sample vibration window", "12 kHz sampling context"],
     output_schema=["fault class", "confidence"],
     status="experimental",
 ))

@@ -28,6 +28,6 @@ def test_bundled_fault_classifier_runs_on_full_vibration_window():
         sample_rate_hz=12000,
         sensors={"vibration": [0.1 * ((index % 5) - 2) for index in range(64)]},
     ))
-    assert result.model_version == "machina-cwru-rf-0.1.0"
+    assert result.model_version == "machina-cwru-enhanced-et-0.2.0"
     assert result.predicted_fault is not None
     assert result.fault_confidence is not None

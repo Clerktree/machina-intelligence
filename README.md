@@ -75,7 +75,7 @@ Run [scripts/verify_release.py](scripts/verify_release.py) before publishing.
 ## Clertree release hub
 
 - [Machina Intelligence landing Space](https://huggingface.co/spaces/clerktree/machina-intelligence-hub)
-- [Bearing fault model](https://huggingface.co/clerktree/machina-cwru-bearing-fault)
+- [Enhanced bearing fault model](https://huggingface.co/clerktree/machina-cwru-bearing-fault)
 - [Remaining useful life model](https://huggingface.co/clerktree/machina-cmapss-rul)
 - [Process quality model](https://huggingface.co/clerktree/machina-ai4i-quality)
 - Agent adapter: `clerktree/machina-agent-mistral-7b-lora` after the lab fine-tune is published.

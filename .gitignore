@@ -7,6 +7,10 @@ artifacts/*
 !artifacts/cwru-baseline/
 !artifacts/cwru-baseline/metadata.json
 !artifacts/cwru-baseline/model.joblib
+!artifacts/cwru-enhanced/
+!artifacts/cwru-enhanced/README.md
+!artifacts/cwru-enhanced/metadata.json
+!artifacts/cwru-enhanced/model.joblib
 !artifacts/rul-cmapss/
 !artifacts/rul-cmapss/README.md
 !artifacts/rul-cmapss/metadata.json

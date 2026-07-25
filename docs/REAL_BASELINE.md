@@ -34,3 +34,19 @@ operating-condition normalization, balanced machine-level sampling, and a
 raw-signal 1D CNN or time-series encoder. These metrics are a transparent
 starting point, not a performance claim for unseen industrial equipment.
 
+## Enhanced signal baseline
+
+The next reproducible experiment uses 64 12 kHz drive-end files, 1,024
+source-grouped windows, and 21 time-domain, spectral, and envelope features.
+The selected ExtraTrees model is published locally as `artifacts/cwru-enhanced`
+and uses a leave-one-RPM-out robustness check.
+
+| Metric | Value |
+|---|---:|
+| Grouped split macro-F1 | 0.9963 |
+| Leave-one-RPM-out mean macro-F1 | 0.9945 |
+| Leave-one-RPM-out minimum macro-F1 | 0.9871 |
+
+These unusually strong benchmark numbers are not industrial generalization.
+CWRU is a controlled laboratory dataset; the next acceptance test is a held-out
+machine or site dataset with real operating variation.
