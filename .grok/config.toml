@@ -1,0 +1,8 @@
+# Project-scoped Grok Build integration for Machina Harness.
+# Run Grok from this repository after installing: pip install -e '.[mcp]'
+[mcp_servers.machina]
+command = "python3"
+args = ["-m", "machina_harness.mcp_server"]
+env = { PYTHONPATH = "/Users/animesh/clerktree-mlmodel.com/src", MACHINA_CLASSIFIER_PATH = "/Users/animesh/clerktree-mlmodel.com/artifacts/cwru-baseline/model.joblib", MACHINA_RUL_MODEL_PATH = "/Users/animesh/clerktree-mlmodel.com/artifacts/rul-cmapss/model.joblib", MACHINA_QUALITY_MODEL_PATH = "/Users/animesh/clerktree-mlmodel.com/artifacts/ai4i-quality/model.joblib" }
+startup_timeout_sec = 30
+tool_timeout_sec = 60

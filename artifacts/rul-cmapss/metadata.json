@@ -1,0 +1,34 @@
+{
+  "model_version": "machina-cmapss-rul-et-0.2.1",
+  "model_family": "ExtraTreesRegressor",
+  "dataset": "NASA C-MAPSS FD001",
+  "features": [
+    "cycle",
+    "cycle_fraction",
+    "sensor_2",
+    "sensor_3",
+    "sensor_4",
+    "sensor_6",
+    "sensor_7",
+    "sensor_8",
+    "sensor_9",
+    "sensor_11",
+    "sensor_12",
+    "sensor_13",
+    "sensor_14",
+    "sensor_15",
+    "sensor_17",
+    "sensor_20",
+    "sensor_21"
+  ],
+  "validation_engines": 20,
+  "validation": {
+    "mae_cycles": 0.7867611746811746,
+    "rmse_cycles": 1.3928367211917807
+  },
+  "official_test_engines": 100,
+  "official_test": {
+    "mae_cycles": 62.36364666666668,
+    "rmse_cycles": 71.72302468064213
+  }
+}

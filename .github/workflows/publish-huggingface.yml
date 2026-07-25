@@ -1,0 +1,48 @@
+name: Publish Machina models
+
+on:
+  workflow_dispatch:
+    inputs:
+      organization:
+        description: Hugging Face organization or username
+        required: true
+        type: string
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Verify release artifacts
+        run: python3 scripts/verify_release.py artifacts
+
+  publish:
+    needs: audit
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - directory: artifacts/cwru-baseline
+            repository: machina-cwru-bearing-fault
+          - directory: artifacts/rul-cmapss
+            repository: machina-cmapss-rul
+          - directory: artifacts/ai4i-quality
+            repository: machina-ai4i-quality
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install publishing client
+        run: python -m pip install --upgrade huggingface_hub
+      - name: Publish model
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_REPO_ID: ${{ inputs.organization }}/${{ matrix.repository }}
+          HF_MODEL_DIR: ${{ matrix.directory }}
+        run: python scripts/publish_hf.py

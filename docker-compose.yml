@@ -1,0 +1,14 @@
+services:
+  machina:
+    build: .
+    image: machina-intelligence:local
+    ports:
+      - "8000:8000"
+    environment:
+      MACHINA_API_KEY: "${MACHINA_API_KEY:-}"
+    volumes:
+      - machina-data:/data
+    restart: unless-stopped
+
+volumes:
+  machina-data:

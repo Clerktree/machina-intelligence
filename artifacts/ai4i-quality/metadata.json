@@ -1,0 +1,123 @@
+{
+  "model_version": "machina-ai4i-quality-et-0.1.0",
+  "model_family": "ExtraTreesClassifier",
+  "dataset": "UCI AI4I 2020 Predictive Maintenance Dataset",
+  "synthetic_dataset": true,
+  "features": [
+    "type_code",
+    "Air temperature [K]",
+    "Process temperature [K]",
+    "Rotational speed [rpm]",
+    "Torque [Nm]",
+    "Tool wear [min]"
+  ],
+  "labels": [
+    "heat_dissipation",
+    "normal",
+    "overstrain",
+    "power",
+    "random",
+    "tool_wear"
+  ],
+  "classification_report": {
+    "heat_dissipation": {
+      "precision": 0.7777777777777778,
+      "recall": 0.7241379310344828,
+      "f1-score": 0.75,
+      "support": 29.0
+    },
+    "normal": {
+      "precision": 0.9876084262701363,
+      "recall": 0.9908827186075425,
+      "f1-score": 0.989242863053372,
+      "support": 2413.0
+    },
+    "overstrain": {
+      "precision": 0.6923076923076923,
+      "recall": 0.9473684210526315,
+      "f1-score": 0.8,
+      "support": 19.0
+    },
+    "power": {
+      "precision": 0.7,
+      "recall": 0.6086956521739131,
+      "f1-score": 0.6511627906976745,
+      "support": 23.0
+    },
+    "random": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 4.0
+    },
+    "tool_wear": {
+      "precision": 0.16666666666666666,
+      "recall": 0.08333333333333333,
+      "f1-score": 0.1111111111111111,
+      "support": 12.0
+    },
+    "accuracy": 0.978,
+    "macro avg": {
+      "precision": 0.5540600938370456,
+      "recall": 0.5590696760336505,
+      "f1-score": 0.5502527941436929,
+      "support": 2500.0
+    },
+    "weighted avg": {
+      "precision": 0.9747634137196963,
+      "recall": 0.978,
+      "f1-score": 0.9761212424268664,
+      "support": 2500.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      21,
+      8,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      2391,
+      5,
+      6,
+      0,
+      5
+    ],
+    [
+      0,
+      1,
+      18,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      7,
+      2,
+      14,
+      0,
+      0
+    ],
+    [
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      10,
+      1,
+      0,
+      0,
+      1
+    ]
+  ]
+}
