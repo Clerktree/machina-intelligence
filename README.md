@@ -24,6 +24,16 @@ lines, robots, and other equipment without renaming the product.
 
 Query `/v1/capabilities` for the machine-readable registry.
 
+Check whether the bundled model plugins are actually available at runtime:
+
+```bash
+curl http://127.0.0.1:8000/v1/model-health
+```
+
+Local source-tree runs automatically use the versioned artifacts in
+`artifacts/`. Deployments can override them with `MACHINA_CLASSIFIER_PATH`,
+`MACHINA_RUL_MODEL_PATH`, and `MACHINA_QUALITY_MODEL_PATH`.
+
 ## MVP scope
 
 - Accept timestamped sensor windows as JSON or CSV-derived records.

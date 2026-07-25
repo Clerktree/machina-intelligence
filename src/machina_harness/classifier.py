@@ -6,6 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
+from .model_runtime import model_path
+
 
 def _features(signal: list[float]) -> list[float]:
     values = np.asarray(signal, dtype=float)
@@ -21,12 +23,12 @@ def _features(signal: list[float]) -> list[float]:
 
 @lru_cache(maxsize=1)
 def _load():
-    path = os.getenv("MACHINA_CLASSIFIER_PATH")
+    path = model_path("fault_diagnosis")
     if not path:
         return None
     try:
         import joblib
-        return joblib.load(Path(path))
+        return joblib.load(path)
     except (FileNotFoundError, ImportError, ValueError):
         return None
 
@@ -38,4 +40,3 @@ def classify(signal: list[float]) -> tuple[str, float, str] | None:
     probabilities = model.predict_proba([_features(signal)])[0]
     index = int(np.argmax(probabilities))
     return str(model.classes_[index]), float(probabilities[index]), "machina-cwru-rf-0.1.0"
-

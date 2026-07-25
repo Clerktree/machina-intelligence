@@ -13,6 +13,15 @@ def test_capabilities_and_platform_model_registry():
     assert len(client.get("/v1/models").json()) >= 2
 
 
+def test_model_health_reports_bundled_plugins():
+    client = TestClient(app)
+    health = {item["capability"]: item for item in client.get("/v1/model-health").json()}
+    assert health["fault_diagnosis"]["available"] is True
+    assert health["remaining_useful_life"]["available"] is True
+    assert health["quality_prediction"]["available"] is True
+    assert health["fault_diagnosis"]["source"] == "bundled"
+
+
 def test_asset_telemetry_and_event_flow():
     client = TestClient(app)
     asset = client.post("/v1/assets", json={

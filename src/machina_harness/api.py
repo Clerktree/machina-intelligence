@@ -14,6 +14,7 @@ from .schemas import RULPrediction, RULRequest
 from .energy import EnergyFinding, EnergyRequest, analyze_energy
 from .quality import QualityPrediction, QualityRequest, predict as predict_quality
 from .copilot import MaintenanceBrief, MaintenanceBriefRequest, build_maintenance_brief
+from .model_runtime import model_health
 from .schemas import Finding, SensorWindow
 
 app = FastAPI(title="Machina Harness", version="0.1.0")
@@ -38,6 +39,12 @@ def health() -> dict[str, str]:
 def capabilities() -> list[Capability]:
     """Return the platform capability registry for dashboards and agents."""
     return MACHINA_CAPABILITIES
+
+
+@app.get("/v1/model-health")
+def model_health_endpoint() -> list[dict[str, str | bool]]:
+    """Show which bundled or explicitly configured model plugins can execute."""
+    return model_health()
 
 
 @app.get("/v1/platform/snapshot")

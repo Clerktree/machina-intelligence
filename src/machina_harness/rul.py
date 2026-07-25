@@ -7,19 +7,20 @@ from pathlib import Path
 
 import numpy as np
 
+from .model_runtime import model_path
 from .schemas import RULPrediction, RULRequest
 
 
 @lru_cache(maxsize=1)
 def _load():
-    path = os.getenv("MACHINA_RUL_MODEL_PATH")
+    path = model_path("remaining_useful_life")
     if not path:
         return None
-    model_path = Path(path)
+    artifact_path = Path(path)
     try:
         import joblib
-        model = joblib.load(model_path)
-        metadata = json.loads((model_path.parent / "metadata.json").read_text())
+        model = joblib.load(artifact_path)
+        metadata = json.loads((artifact_path.parent / "metadata.json").read_text())
         return model, metadata
     except (FileNotFoundError, ImportError, ValueError, json.JSONDecodeError):
         return None
@@ -50,4 +51,3 @@ def predict(request: RULRequest) -> RULPrediction | None:
         model_version=metadata["model_version"],
         warning="Research baseline; validate on the target asset and operating regime.",
     )
-

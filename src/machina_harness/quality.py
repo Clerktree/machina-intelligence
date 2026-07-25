@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .model_runtime import model_path
 from pydantic import BaseModel, Field
 
 
@@ -31,13 +32,13 @@ class QualityPrediction(BaseModel):
 
 @lru_cache(maxsize=1)
 def _load():
-    path = os.getenv("MACHINA_QUALITY_MODEL_PATH")
+    path = model_path("quality_prediction")
     if not path:
         return None
-    model_path = Path(path)
+    artifact_path = Path(path)
     try:
         import joblib
-        return joblib.load(model_path), json.loads((model_path.parent / "metadata.json").read_text())
+        return joblib.load(artifact_path), json.loads((artifact_path.parent / "metadata.json").read_text())
     except (FileNotFoundError, ImportError, ValueError, json.JSONDecodeError):
         return None
 
