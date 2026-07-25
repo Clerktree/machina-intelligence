@@ -169,9 +169,7 @@ class AgentResponse:
 def parse_tool_calls(text: str) -> list[dict[str, Any]]:
     """Parse Mistral tool-call generations when they are emitted as JSON."""
     match = re.search(r"\[TOOL_CALLS\]\s*(\[.*\])", text, flags=re.DOTALL)
-    if not match:
-        return []
-    payload = match.group(1).strip()
+    payload = match.group(1).strip() if match else text.strip()
     try:
         parsed = json.loads(payload)
     except json.JSONDecodeError:
@@ -221,9 +219,11 @@ def generate_agent_turn(
         add_generation_prompt=True,
         return_tensors="pt",
     ).to(model.device)
+    attention_mask = torch.ones_like(encoded, device=model.device)
     with torch.no_grad():
         output = model.generate(
             encoded,
+            attention_mask=attention_mask,
             max_new_tokens=max_new_tokens,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
