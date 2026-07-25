@@ -62,6 +62,15 @@ Model artifacts and Hugging Face publication instructions are in
 [docs/HUGGINGFACE_RELEASE.md](docs/HUGGINGFACE_RELEASE.md).
 Run [scripts/verify_release.py](scripts/verify_release.py) before publishing.
 
+## Clertree release hub
+
+- [Machina Intelligence landing Space](https://huggingface.co/spaces/clerktree/machina-intelligence-hub)
+- [Bearing fault model](https://huggingface.co/clerktree/machina-cwru-bearing-fault)
+- [Remaining useful life model](https://huggingface.co/clerktree/machina-cmapss-rul)
+- [Process quality model](https://huggingface.co/clerktree/machina-ai4i-quality)
+
+The static landing-page source is in [hf-space](hf-space).
+
 ## Roadmap
 
 1. Establish a reproducible baseline with public bearing datasets.
