@@ -25,6 +25,9 @@ curl http://127.0.0.1:8000/ready \
 The service returns `ready` only when all configured model plugins are present.
 Every response includes an `X-Request-ID`; retain it with the model version,
 artifact hash, input source, and operator decision in an external audit store.
+The runtime pins the scikit-learn major/minor line used to serialize the
+published baseline artifacts; do not upgrade model-serving dependencies without
+re-running the release audit and inference tests.
 
 Set `MACHINA_API_KEY` in the deployment environment to protect every route
 except `/health`. Send it as `X-Machina-API-Key`; never put it in the image,

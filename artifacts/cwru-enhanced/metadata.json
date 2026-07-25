@@ -176,5 +176,6 @@
       "min_macro_f1": 0.9837092731829574
     }
   },
-  "selected_model": "extra_trees"
+  "selected_model": "extra_trees",
+  "training_sklearn_version": "1.7.2"
 }
