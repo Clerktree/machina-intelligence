@@ -17,7 +17,7 @@ def main() -> None:
     parser.add_argument("--dataset", type=Path, default=Path("data/machina-agent-sft.jsonl"))
     parser.add_argument("--output", type=Path, default=Path("artifacts/machina-agent-mistral-7b-lora"))
     parser.add_argument("--epochs", type=float, default=2.0)
-    parser.add_argument("--max-length", type=int, default=768)
+    parser.add_argument("--max-length", type=int, default=1280)
     args = parser.parse_args()
     if not torch.cuda.is_available():
         raise SystemExit("CUDA is required for the QLoRA run")
