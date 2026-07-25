@@ -38,18 +38,25 @@ def main() -> None:
             tokenize=False,
             add_generation_prompt=True,
         )
-        completion = tokenizer.apply_chat_template(
-            row["messages"][:3],
-            tools=row["tools"],
-            tokenize=False,
-            add_generation_prompt=False,
-        )
+        calls = []
+        for call in row["messages"][2]["tool_calls"]:
+            calls.append({
+                "name": call["function"]["name"],
+                "arguments": call["function"]["arguments"],
+                "id": call["id"],
+            })
+        target = "[TOOL_CALLS] " + json.dumps(calls, ensure_ascii=False) + tokenizer.eos_token
+        completion = prompt + target
         prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
         full_ids = tokenizer(completion, truncation=True, max_length=args.max_length, add_special_tokens=False)["input_ids"]
         labels = [-100] * min(len(prompt_ids), len(full_ids)) + full_ids[len(prompt_ids):]
         return {"input_ids": full_ids, "attention_mask": [1] * len(full_ids), "labels": labels}
 
     rendered = [render(row) for row in rows]
+    supervised_tokens = sum(1 for row in rendered for label in row["labels"] if label != -100)
+    if supervised_tokens == 0:
+        raise SystemExit("No supervised assistant tokens were found; check the chat-template rendering")
+    print(json.dumps({"examples": len(rows), "supervised_tokens": supervised_tokens}))
     dataset = Dataset.from_list(rendered).train_test_split(test_size=0.08, seed=42)
     quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_use_double_quant=True)
     model = AutoModelForCausalLM.from_pretrained(args.model, quantization_config=quant, device_map="auto", torch_dtype=torch.bfloat16)
