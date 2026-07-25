@@ -38,6 +38,7 @@ model. Load it over `mistralai/Mistral-7B-Instruct-v0.3`.
 - Adapter: LoRA on attention and MLP projection modules
 - Dataset: synthetic-but-grounded Machina MCP routing examples generated from
   the open-source harness tool schemas
+- Objective: assistant-only labels for the first tool-call turn
 
 The training examples teach tool selection and Clertree response style. Runtime
 facts must still come from telemetry, registered model plugins, maintenance

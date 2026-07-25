@@ -8,8 +8,7 @@ from pathlib import Path
 import torch
 from datasets import Dataset
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from transformers import (AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,
-                          DataCollatorForLanguageModeling, Trainer, TrainingArguments)
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, Trainer, TrainingArguments
 
 
 def main() -> None:
@@ -26,16 +25,32 @@ def main() -> None:
     tokenizer = AutoTokenizer.from_pretrained(args.model)
     tokenizer.pad_token = tokenizer.pad_token or tokenizer.eos_token
 
-    def render(row: dict) -> str:
-        return tokenizer.apply_chat_template(row["messages"], tools=row["tools"], tokenize=False, add_generation_prompt=False)
+    def render(row: dict) -> dict:
+        """Train only the first assistant tool-call turn.
 
-    rendered = [{"text": render(row)} for row in rows]
+        The prompt contains the system/user messages plus available tools. Labels
+        start at the assistant response so the model is not rewarded for copying
+        the prompt or the tool schema.
+        """
+        prompt = tokenizer.apply_chat_template(
+            row["messages"][:2],
+            tools=row["tools"],
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+        completion = tokenizer.apply_chat_template(
+            row["messages"][:3],
+            tools=row["tools"],
+            tokenize=False,
+            add_generation_prompt=False,
+        )
+        prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
+        full_ids = tokenizer(completion, truncation=True, max_length=args.max_length, add_special_tokens=False)["input_ids"]
+        labels = [-100] * min(len(prompt_ids), len(full_ids)) + full_ids[len(prompt_ids):]
+        return {"input_ids": full_ids, "attention_mask": [1] * len(full_ids), "labels": labels}
+
+    rendered = [render(row) for row in rows]
     dataset = Dataset.from_list(rendered).train_test_split(test_size=0.08, seed=42)
-
-    def tokenize(batch: dict) -> dict:
-        return tokenizer(batch["text"], truncation=True, max_length=args.max_length)
-
-    tokenized = dataset.map(tokenize, batched=True, remove_columns=["text"])
     quant = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_use_double_quant=True)
     model = AutoModelForCausalLM.from_pretrained(args.model, quantization_config=quant, device_map="auto", torch_dtype=torch.bfloat16)
     model.config.use_cache = False
@@ -43,9 +58,18 @@ def main() -> None:
     lora = LoraConfig(r=32, lora_alpha=64, lora_dropout=0.05, bias="none", task_type="CAUSAL_LM", target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
     model = get_peft_model(model, lora)
     model.print_trainable_parameters()
-    collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+    def collator(features: list[dict]) -> dict[str, torch.Tensor]:
+        max_length = max(len(feature["input_ids"]) for feature in features)
+        batch = {"input_ids": [], "attention_mask": [], "labels": []}
+        for feature in features:
+            pad = max_length - len(feature["input_ids"])
+            batch["input_ids"].append(feature["input_ids"] + [tokenizer.pad_token_id] * pad)
+            batch["attention_mask"].append(feature["attention_mask"] + [0] * pad)
+            batch["labels"].append(feature["labels"] + [-100] * pad)
+        return {key: torch.tensor(value, dtype=torch.long) for key, value in batch.items()}
+
     training = TrainingArguments(output_dir=str(args.output), num_train_epochs=args.epochs, per_device_train_batch_size=1, per_device_eval_batch_size=1, gradient_accumulation_steps=8, gradient_checkpointing=True, learning_rate=2e-4, warmup_ratio=0.05, lr_scheduler_type="cosine", logging_steps=5, eval_steps=50, save_steps=50, eval_strategy="steps", save_total_limit=2, bf16=True, optim="paged_adamw_8bit", report_to="none", remove_unused_columns=False)
-    trainer = Trainer(model=model, args=training, train_dataset=tokenized["train"], eval_dataset=tokenized["test"], data_collator=collator)
+    trainer = Trainer(model=model, args=training, train_dataset=dataset["train"], eval_dataset=dataset["test"], data_collator=collator)
     trainer.train()
     trainer.save_model(str(args.output))
     tokenizer.save_pretrained(str(args.output))

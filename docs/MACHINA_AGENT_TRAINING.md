@@ -18,7 +18,7 @@ python scripts/train_machina_agent.py \
   --epochs 2
 ```
 
-The run uses 4-bit NF4 quantization, bf16 compute, gradient checkpointing, and LoRA. The training examples teach tool selection and final answer style; live tool results remain authoritative at inference time. Validate the adapter with held-out routing examples and MCP integration tests before calling it production-ready.
+The run uses 4-bit NF4 quantization, bf16 compute, gradient checkpointing, and LoRA. Labels are masked so the loss applies to the assistant tool-call turn, not to the rendered prompt or available-tool schema. The training examples teach tool selection and first-step routing; live tool results remain authoritative at inference time. Validate the adapter with held-out routing examples and MCP integration tests before calling it production-ready.
 
 ## Inference
 
