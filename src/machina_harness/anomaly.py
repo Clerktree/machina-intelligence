@@ -1,6 +1,7 @@
 """Small, explainable baseline. Replace this scorer with trained weights later."""
 
-from math import isfinite, sqrt
+import os
+from math import isfinite
 
 from .schemas import Finding, SensorWindow
 from .classifier import classify
@@ -38,6 +39,15 @@ def analyze_window(window: SensorWindow) -> Finding:
     }[status]
     vibration = window.sensors.get("vibration") or window.sensors.get("vibration_de")
     classification = classify(vibration) if vibration else None
+    min_confidence = float(os.getenv("MACHINA_FAULT_MIN_CONFIDENCE", "0.65"))
+    fault_confidence = round(classification[1], 4) if classification else None
+    abstained = bool(classification and classification[1] < min_confidence)
+    predicted_fault = None if abstained else classification[0] if classification else None
+    if predicted_fault and status == "normal":
+        status = "watch"
+        recommendation = "A possible fault pattern was detected; perform a qualified inspection and review the evidence before maintenance."
+    if abstained:
+        recommendation = "The classifier is uncertain; collect a longer or better-quality signal and require qualified human review."
     return Finding(
         machine_id=window.machine_id,
         status=status,
@@ -45,6 +55,9 @@ def analyze_window(window: SensorWindow) -> Finding:
         contributing_sensors=[name for name in ordered if scores[name] > 0][:3],
         recommendation=recommendation,
         model_version=classification[2] if classification else MODEL_VERSION,
-        predicted_fault=classification[0] if classification else None,
-        fault_confidence=round(classification[1], 4) if classification else None,
+        predicted_fault=predicted_fault,
+        fault_confidence=fault_confidence,
+        abstained=abstained,
+        data_quality="valid" if all(len(values) >= 32 for values in window.sensors.values()) else "insufficient",
+        human_review_required=True,
     )

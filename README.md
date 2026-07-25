@@ -68,6 +68,9 @@ docker compose up --build -d
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for persistent storage and
 production hardening guidance.
 
+See [docs/INDUSTRY_READINESS.md](docs/INDUSTRY_READINESS.md) for the evidence
+and standards-alignment gate required before a production deployment.
+
 Model artifacts and Hugging Face publication instructions are in
 [docs/HUGGINGFACE_RELEASE.md](docs/HUGGINGFACE_RELEASE.md).
 Run [scripts/verify_release.py](scripts/verify_release.py) before publishing.

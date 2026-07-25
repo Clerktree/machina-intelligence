@@ -12,9 +12,27 @@ curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/v1/capabilities
 ```
 
+The Compose deployment requires an API key and uses the enhanced bearing
+classifier by default. Set the key outside the repository before starting:
+
+```bash
+export MACHINA_API_KEY="replace-with-a-long-random-secret"
+docker compose up --build -d
+curl http://127.0.0.1:8000/ready \
+  -H "X-Machina-API-Key: $MACHINA_API_KEY"
+```
+
+The service returns `ready` only when all configured model plugins are present.
+Every response includes an `X-Request-ID`; retain it with the model version,
+artifact hash, input source, and operator decision in an external audit store.
+
 Set `MACHINA_API_KEY` in the deployment environment to protect every route
 except `/health`. Send it as `X-Machina-API-Key`; never put it in the image,
 source tree, or a committed Compose file.
+
+The container is read-only except for the persistent `/data` volume, drops Linux
+capabilities, and enables `no-new-privileges`. Treat this as a secure default,
+not a substitute for an OT network threat model or an IEC 62443 assessment.
 
 For production, put the API behind TLS and authentication, replace SQLite
 with a managed database, restrict network access to telemetry producers, and

@@ -1,4 +1,7 @@
 import os
+import logging
+import time
+import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -18,21 +21,39 @@ from .model_runtime import model_health
 from .schemas import Finding, SensorWindow
 
 app = FastAPI(title="Machina Harness", version="0.1.0")
+logger = logging.getLogger("machina.audit")
 
 
 @app.middleware("http")
 async def optional_api_key(request: Request, call_next):
     """Require X-Machina-API-Key whenever MACHINA_API_KEY is configured."""
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request.state.request_id = request_id
+    started = time.perf_counter()
     configured_key = os.getenv("MACHINA_API_KEY")
     if configured_key and request.url.path != "/health":
         if request.headers.get("x-machina-api-key") != configured_key:
-            return JSONResponse(status_code=401, content={"detail": "Invalid or missing Machina API key"})
-    return await call_next(request)
+            response = JSONResponse(status_code=401, content={"detail": "Invalid or missing Machina API key"})
+            response.headers["X-Request-ID"] = request_id
+            return response
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    logger.info("request_id=%s method=%s path=%s status=%s latency_ms=%.2f",
+                request_id, request.method, request.url.path, response.status_code,
+                (time.perf_counter() - started) * 1000)
+    return response
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "machina-harness"}
+
+
+@app.get("/ready")
+def ready() -> dict[str, object]:
+    plugins = model_health()
+    available = all(plugin["available"] for plugin in plugins)
+    return {"status": "ready" if available else "degraded", "plugins": plugins}
 
 
 @app.get("/v1/capabilities", response_model=list[Capability])

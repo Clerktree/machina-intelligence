@@ -5,9 +5,16 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MACHINA_API_KEY: "${MACHINA_API_KEY:-}"
+      MACHINA_API_KEY: "${MACHINA_API_KEY:?Set MACHINA_API_KEY before starting the service}"
     volumes:
       - machina-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     restart: unless-stopped
 
 volumes:

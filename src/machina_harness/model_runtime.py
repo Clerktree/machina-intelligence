@@ -1,6 +1,8 @@
 """Resolve bundled model artifacts and report their runtime availability."""
 
 import os
+import hashlib
+import json
 from pathlib import Path
 
 
@@ -26,10 +28,19 @@ def model_health() -> list[dict[str, str | bool]]:
     result = []
     for capability, (env_name, _, version) in MODEL_CONFIG.items():
         path = model_path(capability)
+        metadata_path = path.parent / "metadata.json" if path else None
+        try:
+            metadata = json.loads(metadata_path.read_text()) if metadata_path and metadata_path.is_file() else {}
+        except (OSError, json.JSONDecodeError):
+            metadata = {}
+        digest = None
+        if path:
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
         result.append({
             "capability": capability,
-            "model_version": version,
+            "model_version": metadata.get("model_version", version),
             "available": path is not None,
             "source": "configured" if os.getenv(env_name) else "bundled",
+            "sha256": digest or "",
         })
     return result

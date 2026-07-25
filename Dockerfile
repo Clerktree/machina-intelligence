@@ -4,7 +4,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MACHINA_DB_PATH=/data/machina.db \
-    MACHINA_CLASSIFIER_PATH=/app/artifacts/cwru-baseline/model.joblib \
+    MACHINA_CLASSIFIER_PATH=/app/artifacts/cwru-enhanced/model.joblib \
     MACHINA_RUL_MODEL_PATH=/app/artifacts/rul-cmapss/model.joblib \
     MACHINA_QUALITY_MODEL_PATH=/app/artifacts/ai4i-quality/model.joblib
 

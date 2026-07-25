@@ -31,6 +31,13 @@ def audit(root: Path) -> list[dict]:
                 raise SystemExit(f"{directory}: metadata missing {field}")
         if "labels" not in metadata and "official_test" not in metadata and "classification_report" not in metadata:
             raise SystemExit(f"{directory}: metadata has no evaluation shape (labels or regression metrics)")
+        if directory.name == "cwru-enhanced":
+            rpm_check = metadata.get("leave_one_rpm_out", {}).get("extra_trees", {})
+            if rpm_check.get("min_macro_f1", 0) < 0.90:
+                raise SystemExit(f"{directory}: leave-one-RPM minimum macro-F1 is below the release gate")
+            model_card = " ".join((directory / "README.md").read_text().lower().split())
+            if "not evidence of generalization" not in model_card and "not industrial generalization" not in model_card:
+                raise SystemExit(f"{directory}: model card must state the benchmark limitation")
         results.append({
             "directory": directory.name,
             "model_version": metadata["model_version"],

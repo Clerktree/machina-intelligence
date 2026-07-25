@@ -20,6 +20,25 @@ def test_model_health_reports_bundled_plugins():
     assert health["remaining_useful_life"]["available"] is True
     assert health["quality_prediction"]["available"] is True
     assert health["fault_diagnosis"]["source"] == "bundled"
+    assert len(health["fault_diagnosis"]["sha256"]) == 64
+
+
+def test_readiness_and_request_trace():
+    client = TestClient(app)
+    response = client.get("/ready", headers={"X-Request-ID": "pilot-check-001"})
+    assert response.status_code == 200
+    assert response.json()["status"] == "ready"
+    assert response.headers["X-Request-ID"] == "pilot-check-001"
+
+
+def test_sensor_window_rejects_non_finite_values():
+    client = TestClient(app)
+    response = client.post("/v1/analyze", json={
+        "machine_id": "bad-input",
+        "sample_rate_hz": 1000,
+        "sensors": {"vibration": [1, 2, "NaN"]},
+    })
+    assert response.status_code == 422
 
 
 def test_asset_telemetry_and_event_flow():
