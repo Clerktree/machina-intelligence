@@ -68,8 +68,30 @@ Run [scripts/verify_release.py](scripts/verify_release.py) before publishing.
 - [Bearing fault model](https://huggingface.co/clerktree/machina-cwru-bearing-fault)
 - [Remaining useful life model](https://huggingface.co/clerktree/machina-cmapss-rul)
 - [Process quality model](https://huggingface.co/clerktree/machina-ai4i-quality)
+- Agent adapter: `clerktree/machina-agent-mistral-7b-lora` after the lab fine-tune is published.
 
 The static landing-page source is in [hf-space](hf-space).
+
+## Machina agent
+
+Machina uses a two-layer model design. The specialist models produce grounded
+machine outputs for faults, RUL, energy, and quality; the agent is a
+Mistral-based Clertree adapter that routes requests to those tools and writes
+operator-ready responses.
+
+Train the adapter with [scripts/train_machina_agent.py](scripts/train_machina_agent.py)
+and run a local prompt after publishing or copying an adapter:
+
+```bash
+pip install -e '.[agent]'
+python scripts/run_machina_agent.py \
+  --adapter clerktree/machina-agent-mistral-7b-lora \
+  "which model plugins are installed?"
+```
+
+The agent runner emits the model text for the next turn. In production, execute
+requested tool calls against the MCP server, append the tool result, and ask the
+agent for the final grounded answer.
 
 ## Roadmap
 

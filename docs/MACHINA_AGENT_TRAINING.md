@@ -20,4 +20,21 @@ python scripts/train_machina_agent.py \
 
 The run uses 4-bit NF4 quantization, bf16 compute, gradient checkpointing, and LoRA. The training examples teach tool selection and final answer style; live tool results remain authoritative at inference time. Validate the adapter with held-out routing examples and MCP integration tests before calling it production-ready.
 
+## Inference
+
+The runtime helper loads the base model plus the Clertree adapter and renders
+the same MCP tool schemas used during training:
+
+```bash
+pip install -e '.[agent]'
+python scripts/run_machina_agent.py \
+  --adapter clerktree/machina-agent-mistral-7b-lora \
+  "prepare a maintenance brief for pump-07"
+```
+
+The first generation should either request the smallest useful MCP tool or give
+a short grounded response when enough context is already present. The MCP tool
+result is still the source of truth; the language model should not fabricate
+telemetry, asset state, or safety conclusions.
+
 For European edge deployments, merge the adapter into the base model and export a quantized GGUF or AWQ artifact for a local runtime. Keep the specialist regressors separate: the small language model is the orchestrator, not a replacement for signal models.
