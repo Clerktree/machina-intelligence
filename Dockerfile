@@ -11,6 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY artifacts ./artifacts
+COPY configs ./configs
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir ".[mcp,runtime]"
